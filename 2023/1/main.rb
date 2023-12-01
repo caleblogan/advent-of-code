@@ -28,7 +28,7 @@ end
 if __FILE__ == $0
     # 1abc2
     # fiveabc6
-    file = File.open("input/1.txt", "r")
+    file = File.open("input.txt", "r")
     lines = file.readlines
     sum = 0
     lines.each { |l|
