@@ -20,29 +20,64 @@ func isDigit(c byte) bool {
 	return false
 }
 
-func isSymbol(c byte) bool {
-	if isDigit(c) || c == '.' {
+func isNumAt(lines []string, r int, c int) bool {
+	if r < 0 || r >= len(lines) || c < 0 || c >= len(lines[0]) || !isDigit(lines[r][c]) {
 		return false
 	}
 	return true
 }
 
-func symbolAt(lines []string, r int, c int) bool {
-	if r < 0 || r >= len(lines) || c < 0 || c >= len(lines[0]) || !isSymbol(lines[r][c]) {
-		return false
+func getNumAt(lines []string, r int, c int) int {
+	l := c
+	for isNumAt(lines, r, l-1) {
+		l -= 1
 	}
-	return true
+	buff := ""
+	for isNumAt(lines, r, l) {
+		buff += string(lines[r][l])
+		l += 1
+	}
+	res, _ := strconv.Atoi(buff)
+	return res
 }
 
-func bySymbol(lines []string, r int, c int) bool {
-	return symbolAt(lines, r-1, c-1) ||
-		symbolAt(lines, r-1, c) ||
-		symbolAt(lines, r-1, c+1) ||
-		symbolAt(lines, r, c+1) ||
-		symbolAt(lines, r+1, c+1) ||
-		symbolAt(lines, r+1, c) ||
-		symbolAt(lines, r+1, c-1) ||
-		symbolAt(lines, r, c-1)
+func numsAround(lines []string, r int, c int) []int {
+	var res []int
+	// Top row
+	if isNumAt(lines, r-1, c) {
+		res = append(res, getNumAt(lines, r-1, c))
+	} else {
+		if isNumAt(lines, r-1, c-1) {
+			res = append(res, getNumAt(lines, r-1, c-1))
+		}
+		if isNumAt(lines, r-1, c+1) {
+			res = append(res, getNumAt(lines, r-1, c+1))
+		}
+	}
+
+	// Right
+	if isNumAt(lines, r, c+1) {
+		res = append(res, getNumAt(lines, r, c+1))
+	}
+
+	// Bottom row
+	if isNumAt(lines, r+1, c) {
+		res = append(res, getNumAt(lines, r+1, c))
+	} else {
+		if isNumAt(lines, r+1, c+1) {
+			res = append(res, getNumAt(lines, r+1, c+1))
+		}
+		if isNumAt(lines, r+1, c-1) {
+			res = append(res, getNumAt(lines, r+1, c-1))
+		}
+	}
+
+	// Left
+	if isNumAt(lines, r, c-1) {
+		res = append(res, getNumAt(lines, r, c-1))
+	}
+
+	return res
 }
 
 func main() {
@@ -51,28 +86,13 @@ func main() {
 	lines := strings.Split(string(dat), "\n")
 	res := 0
 	for r := 0; r < len(lines); r++ {
-		buf := ""
-		foundSymbol := false
 		for c := 0; c < len(lines[r]); c++ {
-			if isDigit(lines[r][c]) {
-				buf += string(lines[r][c])
-				if bySymbol(lines, r, c) {
-					foundSymbol = true
+			if lines[r][c] == '*' {
+				nums := numsAround(lines, r, c)
+				if len(nums) == 2 {
+					res += nums[0] * nums[1]
 				}
-			} else {
-				if foundSymbol && len(buf) > 0 {
-					fmt.Printf("found %s r=(%d, %d)\n", buf, r, c)
-					conv, _ := strconv.Atoi(buf)
-					res += conv
-				}
-				foundSymbol = false
-				buf = ""
 			}
-		}
-		if foundSymbol && len(buf) > 0 {
-			fmt.Printf("found %s r=(%d) at end of line\n", buf, r)
-			conv, _ := strconv.Atoi(buf)
-			res += conv
 		}
 	}
 	fmt.Printf("RES: %d\n", res)
