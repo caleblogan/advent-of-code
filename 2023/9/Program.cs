@@ -33,6 +33,6 @@ class Program
         {
             newList.Add(nums[i] - nums[i - 1]);
         }
-        return nums.Last() + NextNum(newList);
+        return nums.First() - NextNum(newList);
     }
 }
