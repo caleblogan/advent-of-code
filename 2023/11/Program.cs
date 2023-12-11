@@ -18,48 +18,57 @@ class Program
         }
 
         // expand
-        var expanededGrid = Expand(grid);
-        List<Vector2> points = new();
-        for (int r = 0; r < expanededGrid.Count; r++)
+        var galaxies = FindGalaxies(grid);
+        var emptyRows = EmptyRows(grid);
+        var emptyCols = EmptyCols(grid);
+        long res = 0;
+        for (int a = 0; a < galaxies.Count - 1; a++)
         {
-            for (int c = 0; c < expanededGrid[r].Count; c++)
+            for (int b = a + 1; b < galaxies.Count; b++)
             {
-                if (expanededGrid[r][c] == Galaxy)
-                {
-                    points.Add(new Vector2(c, r));
-                }
-                Console.Write($"{expanededGrid[r][c]}");
+                res += Distance(galaxies[a], galaxies[b], emptyRows, emptyCols);
             }
-            Console.WriteLine($"");
         }
-        long res = SumShortestPaths(points);
-
 
         Console.WriteLine($"Res: {res}");
     }
 
-    private static List<List<char>> Expand(List<List<char>> grid)
+    private static HashSet<int> EmptyRows(List<List<char>> grid)
     {
-        List<List<char>> res = new();
-        var emptyCols = EmptyCols(grid);
+        HashSet<int> empty = new();
         for (int r = 0; r < grid.Count; r++)
         {
-            bool isEmptyRow = true;
-            var newRow = new List<char>();
+            bool isEmpty = true;
             for (int c = 0; c < grid[0].Count; c++)
             {
-                if (emptyCols.Contains(c)) newRow.Add('.');
-                if (grid[r][c] == Galaxy) isEmptyRow = false;
-                newRow.Add(grid[r][c]);
+                if (grid[r][c] == Galaxy)
+                {
+                    isEmpty = false;
+                    break;
+                }
             }
-            res.Add(newRow);
-            if (isEmptyRow)
+            if (isEmpty)
             {
-                res.Add(new());
+                empty.Add(r);
             }
         }
+        return empty;
+    }
 
-        return res;
+    private static List<Vector2> FindGalaxies(List<List<char>> grid)
+    {
+        List<Vector2> galaxies = new();
+        for (int r = 0; r < grid.Count; r++)
+        {
+            for (int c = 0; c < grid[0].Count; c++)
+            {
+                if (grid[r][c] == Galaxy)
+                {
+                    galaxies.Add(new Vector2(c, r));
+                }
+            }
+        }
+        return galaxies;
     }
 
     static HashSet<int> EmptyCols(List<List<char>> grid)
@@ -83,22 +92,28 @@ class Program
         }
         return empty;
     }
-
-    static long SumShortestPaths(List<Vector2> points)
+    static long Distance(Vector2 a, Vector2 b, HashSet<int> emptyRows, HashSet<int> emptyCols)
     {
-        long res = 0;
-        for (int i = 0; i < points.Count - 1; i++)
+        const int Mult = 1000000;
+        // const int Mult = 10;
+        // count cols between
+        long expandingRows = 0;
+        foreach (int i in emptyRows)
         {
-            for (int j = i + 1; j < points.Count; j++)
+            if ((i > a.Y && i < b.Y) || (i > b.Y && i < a.Y))
             {
-                res += Distance(points[i], points[j]);
+                expandingRows++;
             }
         }
-        return res;
-    }
-
-    static long Distance(Vector2 a, Vector2 b)
-    {
-        return (long)(Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y));
+        // count rows between
+        long expandingCols = 0;
+        foreach (int i in emptyCols)
+        {
+            if ((i > a.X && i < b.X) || (i > b.X && i < a.X))
+            {
+                expandingCols++;
+            }
+        }
+        return (long)(Math.Abs(a.X - b.X) - expandingRows - expandingCols + expandingRows * Mult + expandingCols * Mult + Math.Abs(a.Y - b.Y));
     }
 }
