@@ -1,4 +1,6 @@
-﻿class Program
+﻿using System.Text;
+
+class Program
 {
     static void Main(string[] args)
     {
@@ -13,24 +15,49 @@
                 puzzle.Add(new List<char>(line));
                 continue;
             }
-            var refY = FindReflectionY(puzzle);
-            Console.WriteLine($"Ref Y: {refY}");
-            if (refY > -1) res += refY + 1;
-
-            var refX = FindReflectionX(puzzle);
-            Console.WriteLine($"Ref X: {refX}");
-            if (refX > -1) res += (refX + 1) * 100;
+            var refY = FindReflectionY(puzzle, -1);
+            var refX = FindReflectionX(puzzle, -1);
+            res += FindPuzzleValue(puzzle, refX, refY);
 
             puzzle = new();
         }
-        Console.WriteLine($"Res: {res}");
     }
 
-    private static int FindReflectionX(List<List<char>> puzzle)
+    private static long FindPuzzleValue(List<List<char>> puzzle, int origRefX, int origRefY)
+    {
+        for (int r = 0; r < puzzle.Count; r++)
+        {
+            for (int c = 0; c < puzzle[0].Count; c++)
+            {
+                char sym = puzzle[r][c];
+                puzzle[r][c] = sym == '.' ? '#' : '.';
+
+                var refY = FindReflectionY(puzzle, origRefY) + 1;
+                if (refY > 0)
+                {
+                    Console.WriteLine($"Ref Y: {refY}");
+                    return refY;
+                }
+
+                var refX = FindReflectionX(puzzle, origRefX) + 1;
+                if (refX > 0)
+                {
+                    Console.WriteLine($"Ref X: {refX}");
+                    return refX * 100;
+                }
+
+                puzzle[r][c] = sym;
+            }
+        }
+
+        return -1;
+    }
+
+    private static int FindReflectionX(List<List<char>> puzzle, int origRefX)
     {
         for (int i = 0; i < puzzle.Count - 1; i++)
         {
-            if (FindReflectionXAt(puzzle, i, i + 1))
+            if (FindReflectionXAt(puzzle, i, i + 1) && i != origRefX)
             {
                 return i;
             }
@@ -48,11 +75,11 @@
         return FindReflectionXAt(puzzle, i - 1, j + 1);
     }
 
-    private static int FindReflectionY(List<List<char>> puzzle)
+    private static int FindReflectionY(List<List<char>> puzzle, int origRefY)
     {
         for (int i = 0; i < puzzle[0].Count - 1; i++)
         {
-            if (FindReflectionYAt(puzzle, i, i + 1))
+            if (FindReflectionYAt(puzzle, i, i + 1) && i != origRefY)
             {
                 return i;
             }
