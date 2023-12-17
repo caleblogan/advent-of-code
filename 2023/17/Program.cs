@@ -1,6 +1,4 @@
-﻿
-
-class Program
+﻿class Program
 {
     const int Up = 0;
     const int Down = 1;
@@ -24,6 +22,7 @@ class Program
         long loss = 90000000000;
         PriorityQueue<(int r, int c, int dir, int str, int cost), int> frontier = new();
         HashSet<(int r, int c, int dir, int str)> visited = new();
+        frontier.Enqueue((0, 0, Right, 0, 0), 0); // No sure on this start state
         frontier.Enqueue((0, 0, Down, 0, 0), 0); // No sure on this start state
         while (frontier.Count > 0)
         {
@@ -44,37 +43,37 @@ class Program
             // possible better lower cost still on stack
             if (r == map.Count - 1 && c == map[0].Count - 1)
             {
-                loss = cost;
-                Console.WriteLine($"FOUND LOSS {loss}");
+                loss = Math.Min(loss, cost);
+                Console.WriteLine($"FOUND LOSS {loss} {str}");
 
-                break;
+                continue;
             }
             // min 4 blocks straight
             // max 10 blocks straight
-            if (dir == Right && str < 3)
+            if (dir == Right && str < 10)
             {
                 frontier.Enqueue((r, c + 1, Right, str + 1, cost + GetCost(map, r, c + 1)), cost + GetCost(map, r, c + 1));
             }
-            if (dir == Left && str < 3)
+            if (dir == Left && str < 10)
             {
                 frontier.Enqueue((r, c - 1, Left, str + 1, cost + GetCost(map, r, c - 1)), cost + GetCost(map, r, c - 1));
             }
-            if (dir == Left || dir == Right)
+            if ((dir == Left || dir == Right) && str >= 4)
             {
                 frontier.Enqueue((r - 1, c, Up, 1, cost + GetCost(map, r - 1, c)), cost + GetCost(map, r - 1, c));
                 frontier.Enqueue((r + 1, c, Down, 1, cost + GetCost(map, r + 1, c)), cost + GetCost(map, r + 1, c));
             }
 
-            if (dir == Up && str < 3)
+            if (dir == Up && str < 10)
             {
                 frontier.Enqueue((r - 1, c, Up, str + 1, cost + GetCost(map, r - 1, c)), cost + GetCost(map, r - 1, c));
             }
-            if (dir == Down && str < 3)
+            if (dir == Down && str < 10)
             {
                 frontier.Enqueue((r + 1, c, Down, str + 1, cost + GetCost(map, r + 1, c)), cost + GetCost(map, r + 1, c));
             }
 
-            if (dir == Up || dir == Down)
+            if ((dir == Up || dir == Down) && str >= 4)
             {
                 frontier.Enqueue((r, c - 1, Left, 1, cost + GetCost(map, r, c - 1)), cost + GetCost(map, r, c - 1));
                 frontier.Enqueue((r, c + 1, Right, 1, cost + GetCost(map, r, c + 1)), cost + GetCost(map, r, c + 1));
@@ -87,7 +86,7 @@ class Program
     {
         if (r < 0 || r >= map.Count || c < 0 || c >= map[0].Count)
         {
-            return 20;
+            return 80; // Random high number; pos will never be considered by calling code later on.. just don't overflow int
         }
         return map[r][c];
     }
